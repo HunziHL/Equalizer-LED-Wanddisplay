@@ -20,10 +20,10 @@ byte
   dotCount = 0, // Frame counter for delaying dot-falling speed
   colCount = 0; // Frame counter for storing past column data
 int
-  col[8][10],   // Column levels for the prior 10 frames
+  col[9][10],   // Column levels for the prior 10 frames
   minLvlAvg[8], // For dynamic adjustment of low & high ends of graph,
   maxLvlAvg[8], // pseudo rolling averages for the prior few frames.
-  colDiv[8];    // Used when filtering FFT output to 8 columns
+  colDiv[9];    // Used when filtering FFT output to 8 columns
 
 /*
 These tables were arrived at through testing, modeling and trial and error,
@@ -72,11 +72,15 @@ static const uint8_t PROGMEM
     143, 164, 179, 185, 184, 174, 158, 139, 118,  97,
      77,  60,  45,  34,  25,  18,  13,   9,   7,   5,
       3,   2,   2,   1,   1,   1,   1 },
+
+  col8data[] = { 17,  7,
+     2,   9,  29,  70, 125, 172, 185, 162, 118, 74,
+      41,  21,  10,   5,   2,   1,   1 },
       
   // And then this points to the start of the data for each of the columns:
   * const colData[]  = {
     col0data, col1data, col2data, col3data,
-    col4data, col5data, col6data, col7data,};
+    col4data, col5data, col6data, col7data, col8data,};
 
 //Adafruit_BicolorMatrix matrix = Adafruit_BicolorMatrix();
 
@@ -91,7 +95,7 @@ void setup() {
   memset(peak, 0, sizeof(peak));
   memset(col , 0, sizeof(col));
 
-  for(i=0; i<8; i++) {
+  for(i=0; i<9; i++) {
     minLvlAvg[i] = 0;
     maxLvlAvg[i] = 512;
     data         = (uint8_t *)pgm_read_word(&colData[i]);
@@ -147,7 +151,7 @@ void loop() {
   matrix.fillRect(0, 5, 8, 3, GREEN);  // Lower section
 
   // Downsample spectrum output to 8 columns:
-  for(x=0; x<8; x++) {
+  for(x=0; x<9; x++) {
     data   = (uint8_t *)pgm_read_word(&colData[x]);
     nBins  = pgm_read_byte(&data[0]) + 2;
     binNum = pgm_read_byte(&data[1]);
@@ -201,7 +205,7 @@ void loop() {
   // Every third frame, make the peak pixels drop by 1:
   if(++dotCount >= 3) {
     dotCount = 0;
-    for(x=0; x<8; x++) {
+    for(x=0; x<9; x++) {
       if(peak[x] > 0) peak[x]--;
     }
   }
